@@ -45,13 +45,6 @@ def prepare_word(
 
     return tuple(tokens)
 
-    result = []
-    if start_of_word is not None:
-        result.append(start_of_word)
-    result.extend(raw_word)
-    if end_of_word is not None:
-        result.append(end_of_word)
-    return tuple(result)
 
 def collect_frequencies(
     text: str, start_of_word: str | None, end_of_word: str
@@ -230,30 +223,6 @@ def train(
     return word_frequencies
 
 
-    current_frequencies = dict(word_frequencies)
-
-    for _ in range(num_merges):
-        pair_frequencies = count_tokens_pairs(current_frequencies)
-        if pair_frequencies is None:
-            return None
-        if not pair_frequencies:
-            break
-
-        best_item = min (pair_frequencies.items(),
-            key=lambda item: (
-                -item[1],
-                -len(item[0][0] + item[0][1]),
-                item[0][0] + item[0][1],
-            ),
-        )
-        pair_to_merge = best_item[0]
-
-        new_frequencies = merge_tokens(current_frequencies, pair_to_merge)
-        if new_frequencies is None:
-            return None
-        current_frequencies = new_frequencies
-
-    return current_frequencies
 
 def get_vocabulary(
     word_frequencies: dict[tuple[str, ...], int], unknown_token: str
@@ -417,26 +386,6 @@ def tokenize_word(
 
     return encoded_ids
 
-    tokens_by_length = sorted(vocabulary.keys(), key=lambda token: (-len(token), token))
-    word_text = ''.join(word)
-
-    result = []
-    position = 0
-    while position < len(word_text):
-        matched = None
-        for token in tokens_by_length:
-            if token and word_text.startswith(token, position):
-                matched = token
-                break
-
-        if matched is not None:
-            result.append(vocabulary[matched])
-            position += len(matched)
-        else:
-            result.append(vocabulary[unknown_token])
-            position += 1
-
-    return result
 
 def load_vocabulary(vocab_path: str) -> dict[str, int] | None:
     """
